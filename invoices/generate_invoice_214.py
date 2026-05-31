@@ -1,4 +1,4 @@
-import json, requests
+import json, os, requests
 
 items = [
     {"name": "16-05-2026 124 Wendover Cir", "quantity": 44, "unit_cost": 0.70},
@@ -69,18 +69,24 @@ payload = {
     "currency": "USD"
 }
 
+api_key = os.environ.get("INVOICE_API_KEY", "sk_OuwFKmA6rklfHfzyTMuqyN4eR8MEck5H")
+output_dir = os.environ.get("OUTPUT_DIR", os.path.join(os.path.dirname(__file__), "output"))
+os.makedirs(output_dir, exist_ok=True)
+
 response = requests.post(
     "https://invoice-generator.com",
     headers={
         "Content-Type": "application/json",
-        "Authorization": "Bearer sk_OuwFKmA6rklfHfzyTMuqyN4eR8MEck5H"
+        "Authorization": f"Bearer {api_key}"
     },
     json=payload
 )
 
+filename = "Invoice_214_Allen_Hall_May2ndHalf.pdf"
 if response.status_code == 200:
-    with open("Invoice_214_Allen_Hall_May2ndHalf.pdf", "wb") as f:
+    out_path = os.path.join(output_dir, filename)
+    with open(out_path, "wb") as f:
         f.write(response.content)
-    print("✅ Invoice saved: Invoice_214_Allen_Hall_May2ndHalf.pdf")
+    print(f"✅ Invoice saved: {out_path}")
 else:
     print(f"❌ Error {response.status_code}: {response.text}")
