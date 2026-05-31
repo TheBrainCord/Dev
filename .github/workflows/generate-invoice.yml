@@ -1,0 +1,42 @@
+name: Generate Invoice PDF
+
+on:
+  push:
+    paths:
+      - 'invoices/*.py'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - run: pip install requests
+
+      - name: Run changed invoice scripts
+        env:
+          INVOICE_API_KEY: ${{ secrets.INVOICE_API_KEY }}
+          OUTPUT_DIR: ${{ github.workspace }}/invoices/output
+        run: |
+          changed=$(git diff --name-only HEAD~1 HEAD -- 'invoices/*.py')
+          for f in $changed; do
+            echo "Running $f"
+            python "$f"
+          done
+
+      - name: Commit and push generated PDFs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add invoices/output/
+          git diff --staged --quiet || git commit -m "Generate invoice PDFs"
+          git push
