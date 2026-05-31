@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoice Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { colors: { brand: '#1b2d4f' } } } }</script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-brand text-white py-5 px-6 shadow-lg">
+    <div class="max-w-4xl mx-auto flex items-center gap-4">
+      <img src="https://raw.githubusercontent.com/TheBrainCord/Dev/main/invoices/logos/creative_estates.jpg"
+           alt="Logo" id="logoPreview" class="h-12 w-12 rounded-full object-cover border-2 border-white" />
+      <div>
+        <h1 class="text-2xl font-bold tracking-wide">Invoice Generator</h1>
+        <p class="text-blue-200 text-sm">Creative Estates &amp; Sunlight Designings</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto py-8 px-4 space-y-6">
+
+    <!-- Invoice Details -->
+    <section class="bg-white rounded-xl shadow p-6">
+      <h2 class="text-lg font-semibold text-brand mb-4 border-b pb-2">Invoice Details</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">From (Company)</label>
+          <select id="fromCompany" onchange="updateLogo()"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand focus:outline-none">
+            {% for c in companies %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Bill To (Client)</label>
+          <input id="to" type="text" placeholder="e.g. Allen Hall Photography"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Invoice Number</label>
+          <input id="number" type="text" placeholder="e.g. 214"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Date</label>
+          <input id="date" type="text" placeholder="e.g. June 1, 2026"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Payment Terms</label>
+          <input id="paymentTerms" type="text" value="PayPal"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Tax (%)</label>
+          <input id="tax" type="number" value="7.5" step="0.1" min="0"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand focus:outline-none" />
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Line Items -->
+    <section class="bg-white rounded-xl shadow p-6">
+      <div class="flex items-center justify-between mb-4 border-b pb-2">
+        <h2 class="text-lg font-semibold text-brand">Line Items</h2>
+        <button onclick="addRow()"
+          class="text-sm bg-brand text-white px-4 py-1.5 rounded-lg hover:bg-blue-900 transition">
+          + Add Row
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-gray-500 border-b">
+              <th class="pb-2 pr-3 font-medium w-1/2">Description</th>
+              <th class="pb-2 pr-3 font-medium text-center">Qty</th>
+              <th class="pb-2 pr-3 font-medium text-center">Unit Cost ($)</th>
+              <th class="pb-2 font-medium text-center">Total</th>
+              <th class="pb-2"></th>
+            </tr>
+          </thead>
+          <tbody id="itemsTable"></tbody>
+          <tfoot>
+            <tr class="border-t">
+              <td colspan="3" class="pt-3 text-right pr-3 font-medium text-gray-600">Subtotal</td>
+              <td class="pt-3 text-center font-semibold text-brand" id="subtotal">$0.00</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- Notes & Terms -->
+    <section class="bg-white rounded-xl shadow p-6">
+      <h2 class="text-lg font-semibold text-brand mb-4 border-b pb-2">Notes &amp; Terms</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Notes</label>
+          <textarea id="notes" rows="3" placeholder="Thank you message..."
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand focus:outline-none resize-none">Its really great working with you. We are looking forward to continuing with more services.</textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Terms</label>
+          <textarea id="terms" rows="3" placeholder="Payment terms..."
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand focus:outline-none resize-none">Invoice included the PayPal and cross border charges.</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- Generate Button -->
+    <div class="flex justify-end">
+      <button onclick="generateInvoice()" id="generateBtn"
+        class="bg-brand text-white text-base font-semibold px-8 py-3 rounded-xl hover:bg-blue-900 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+        Generate &amp; Download PDF
+      </button>
+    </div>
+
+    <!-- Error message -->
+    <div id="errorBox" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-lg px-4 py-3 text-sm"></div>
+
+  </main>
+
+  <script>
+    const LOGOS = {
+      "Creative Estates": "https://raw.githubusercontent.com/TheBrainCord/Dev/main/invoices/logos/creative_estates.jpg",
+      "Sunlight Designings": null,
+    };
+
+    let rowCount = 0;
+
+    function updateLogo() {
+      const company = document.getElementById("fromCompany").value;
+      const img = document.getElementById("logoPreview");
+      img.src = LOGOS[company] || "";
+      img.classList.toggle("hidden", !LOGOS[company]);
+    }
+
+    function addRow(name = "", qty = "", cost = "") {
+      rowCount++;
+      const id = rowCount;
+      const tbody = document.getElementById("itemsTable");
+      const tr = document.createElement("tr");
+      tr.id = `row-${id}`;
+      tr.className = "border-b last:border-0";
+      tr.innerHTML = `
+        <td class="py-2 pr-3">
+          <input type="text" value="${name}" placeholder="Description"
+            class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-brand focus:outline-none"
+            oninput="recalc()" />
+        </td>
+        <td class="py-2 pr-3">
+          <input type="number" value="${qty}" placeholder="0" min="0"
+            class="w-full border border-gray-200 rounded px-2 py-1 text-sm text-center focus:ring-1 focus:ring-brand focus:outline-none row-qty"
+            oninput="recalc()" />
+        </td>
+        <td class="py-2 pr-3">
+          <input type="number" value="${cost}" placeholder="0.00" min="0" step="0.01"
+            class="w-full border border-gray-200 rounded px-2 py-1 text-sm text-center focus:ring-1 focus:ring-brand focus:outline-none row-cost"
+            oninput="recalc()" />
+        </td>
+        <td class="py-2 text-center font-medium text-gray-700 row-total">$0.00</td>
+        <td class="py-2 pl-2">
+          <button onclick="removeRow(${id})" class="text-red-400 hover:text-red-600 text-lg leading-none">&times;</button>
+        </td>`;
+      tbody.appendChild(tr);
+      recalc();
+    }
+
+    function removeRow(id) {
+      document.getElementById(`row-${id}`)?.remove();
+      recalc();
+    }
+
+    function recalc() {
+      const rows = document.querySelectorAll("#itemsTable tr");
+      let subtotal = 0;
+      rows.forEach(row => {
+        const qty = parseFloat(row.querySelector(".row-qty")?.value) || 0;
+        const cost = parseFloat(row.querySelector(".row-cost")?.value) || 0;
+        const total = qty * cost;
+        subtotal += total;
+        const cell = row.querySelector(".row-total");
+        if (cell) cell.textContent = `$${total.toFixed(2)}`;
+      });
+      document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
+    }
+
+    async function generateInvoice() {
+      const btn = document.getElementById("generateBtn");
+      const errBox = document.getElementById("errorBox");
+      errBox.classList.add("hidden");
+
+      const items = [];
+      document.querySelectorAll("#itemsTable tr").forEach(row => {
+        const inputs = row.querySelectorAll("input");
+        const name = inputs[0]?.value.trim();
+        const qty = parseFloat(inputs[1]?.value) || 0;
+        const cost = parseFloat(inputs[2]?.value) || 0;
+        if (name) items.push({ name, quantity: qty, unit_cost: cost });
+      });
+
+      if (!document.getElementById("to").value.trim()) { showError("Bill To is required."); return; }
+      if (!document.getElementById("number").value.trim()) { showError("Invoice number is required."); return; }
+      if (!document.getElementById("date").value.trim()) { showError("Date is required."); return; }
+      if (items.length === 0) { showError("Add at least one line item."); return; }
+
+      btn.disabled = true;
+      btn.textContent = "Generating...";
+
+      const payload = {
+        from_company: document.getElementById("fromCompany").value,
+        to: document.getElementById("to").value.trim(),
+        number: document.getElementById("number").value.trim(),
+        date: document.getElementById("date").value.trim(),
+        payment_terms: document.getElementById("paymentTerms").value.trim(),
+        tax: parseFloat(document.getElementById("tax").value) || 0,
+        notes: document.getElementById("notes").value.trim(),
+        terms: document.getElementById("terms").value.trim(),
+        items,
+      };
+
+      try {
+        const res = await fetch("/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (res.ok) {
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `Invoice_${payload.number}_${payload.to.replace(/\s+/g, "_")}.pdf`;
+          a.click();
+          URL.revokeObjectURL(url);
+        } else {
+          const data = await res.json();
+          showError(data.error || "Failed to generate invoice.");
+        }
+      } catch (e) {
+        showError("Network error. Please try again.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Generate & Download PDF";
+      }
+    }
+
+    function showError(msg) {
+      const box = document.getElementById("errorBox");
+      box.textContent = msg;
+      box.classList.remove("hidden");
+    }
+
+    // Seed one empty row on load
+    addRow();
+  </script>
+</body>
+</html>
