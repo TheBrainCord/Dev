@@ -1,4 +1,11 @@
-import json, os, requests  # noqa
+import json, os, requests
+
+LOGOS = {
+    "Creative Estates": "https://raw.githubusercontent.com/TheBrainCord/Dev/main/invoices/logos/creative_estates.jpg",
+    "Sunlight Designings": None,  # Add logo path when available
+}
+
+from_company = "Creative Estates"
 
 items = [
     {"name": "16-05-2026 124 Wendover Cir", "quantity": 44, "unit_cost": 0.70},
@@ -56,7 +63,8 @@ items = [
 ]
 
 payload = {
-    "from": "Creative Estates",
+    "from": from_company,
+    "logo": LOGOS.get(from_company),
     "to": "Allen Hall Photography",
     "number": "214",
     "date": "June 1, 2026",
