@@ -1,4 +1,4 @@
-import json, os, requests
+import json, os, requests  # noqa
 
 items = [
     {"name": "16-05-2026 124 Wendover Cir", "quantity": 44, "unit_cost": 0.70},
